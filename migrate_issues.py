@@ -27,7 +27,7 @@ Github issue trackers.
 ###
 ### Code to interact with Google Code Project Hosting
 ###
-def all_open_issues(client, project_name):
+def get_issues(client, project_name, retrieve_closed):
     """Retrieve a set of issues in a project. Returns a list of IssueEntry
     objects where the issue is not in closed state."""
     query = gdata.projecthosting.client.Query(max_results=1024*1024)
@@ -35,7 +35,7 @@ def all_open_issues(client, project_name):
 
     out = []
     for issue in feed.entry:
-        if issue.state.text == "closed":
+        if issue.state.text == "closed" and not retrieve_closed:
             continue
         out.append(issue)
     return out
@@ -79,6 +79,13 @@ def create_github_issue(title, body):
     data = json.dumps(d)
     return data
 
+def close_github_issue_json():
+    d = {}
+    d["state"] = "closed"
+    data = json.dumps(d)
+    return data
+
+
 def github_create_issue_url(organization, repo):
     return ("https://api.github.com/repos/{0}/{1}/issues"
             .format(organization, repo))
@@ -101,6 +108,14 @@ def post_issue_to_github(title, body, organization, project, user, password):
     data = create_github_issue(title, body)
     res = post_to_github(uri, data, user, password)
     return res["number"]
+
+def close_github_issue(issue_id, organization, project, user, password):
+    """Create a new issue on github. Returns the number (as text) of the new
+    issue."""
+    uri = "https://api.github.com/repos/{0}/{1}/issues/{2}".format(organization, project, issue_id)
+    data = close_github_issue_json()
+    post_to_github(uri, data, user, password)
+
 
 ###
 ### Main and utils.
@@ -137,8 +152,8 @@ def main(args):
         google_name = args['google_name']
         client.ClientLogin(google_username, google_password, source=application_name)
 
-
-    issues = all_open_issues(client, source_project)
+    migrate_closed = args['migrate_closed']
+    issues = get_issues(client, source_project, migrate_closed)
 
     for issue in issues:
         print("Migrating", issue.id.text)
@@ -158,11 +173,19 @@ def main(args):
                                                github_project,
                                                username,
                                                password)
+        if args['migrate_closed'] and issue.state.text == "closed":
+            close_github_issue(github_issue_id,
+                github_organization,
+                github_project,
+                username,
+                password)
+
         new_github_issue_url = ("http://github.com/{0}/{1}/issues/{2}"
                                 .format(github_organization,
                                         github_project,
                                         github_issue_id))
         print("Created", new_github_issue_url)
+
         if args['google_mark_as_migrated']:
             mark_googlecode_issue_migrated(client,
                                        google_name,
@@ -182,5 +205,6 @@ if __name__ == "__main__":
     parser.add_argument('--google-name', help='Google display name')
     parser.add_argument('--google-application-name', help='Google application name')
     parser.add_argument('--google-mark-as-migrated', type=bool, default=False, help="Mark as migrated on googlecode")
+    parser.add_argument('--migrate-closed', type=bool, default=False, help="Migrate also closed issues")
 
     main(vars(parser.parse_args()))
