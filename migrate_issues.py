@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-"""
-Script for migrating issues from Google Code Project Hosting issue trackers to
-Github issue trackers.
-
-To use: edit the variables at the top of main() so they have your desired
-source and target projects, and also your usernames and passwords for both
-sites.
-"""
 from __future__ import print_function
 
 import os
@@ -21,19 +13,20 @@ import atom.mock_http_core
 import atom.core
 import gdata.data
 
+import argparse
+
 import json
 import urllib2
 import base64
 
-## Based substantially on live_client_test from the Google Code Project Hosting
-## API example, available here.
-## http://code.google.com/p/gdata-python-client/ ...
-## ... source/browse/tests/gdata_tests/projecthosting/live_client_test.py
+description = """
+Script for migrating issues from Google Code Project Hosting issue trackers to
+Github issue trackers.
+"""
 
 ###
 ### Code to interact with Google Code Project Hosting
 ###
-
 def all_open_issues(client, project_name):
     """Retrieve a set of issues in a project. Returns a list of IssueEntry
     objects where the issue is not in closed state."""
@@ -126,23 +119,21 @@ def build_previous_comments(comments):
         out += u"<p>{0}</p>".format(content)
     return out
 
-def main():
+def main(args):
     ### The Google Code source project
-    source_project = "nltk"
+    source_project = args['google-source']
 
-    ### Github target project
-    github_organization = "nltk"
-    github_project = "nltk"
+    github_organization = args['github-organization']
+    github_project = args['github-project']
 
-    ### Github username and password
-    username, password = 'yourusername','yourgithubpassword'
+    username = args['github-username']
+    password = args['github-password']
 
-    ### Usernames and passwords for Google Code
-    google_username = 'YOURUSERNAME@gmail.com'
-    google_password = 'yourgooglepassword'
-    google_name = "your.displayname"
+    google_username = args['google-username']
+    google_password = args['google-password']
+    google_name = args['google-name']
 
-    application_name = 'project hosting issue migrator'
+    application_name = args['google-application-name']
     client = gdata.projecthosting.client.ProjectHostingClient()
     client.ClientLogin(google_username, google_password, source=application_name)
 
@@ -177,4 +168,16 @@ def main():
                                        source_issue_id,
                                        new_github_issue_url)
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('google-source', type=str, nargs=1, help='Google code source project')
+    parser.add_argument('github-organization', type=str, nargs=1, help='Github organization')
+    parser.add_argument('github-project', type=str, nargs=1, help='Github project')
+    parser.add_argument('github-username', type=str, nargs=1, help='Github username')
+    parser.add_argument('github-password', type=str, nargs=1, help='Github password')
+    parser.add_argument('google-username', type=str, nargs=1, help='Google username')
+    parser.add_argument('google-password', type=str, nargs=1, help='Google password')
+    parser.add_argument('google-name', type=str, nargs=1, help='Google display name')
+    parser.add_argument('google-application-name', type=str, nargs=1, help='Google application name')
+
+    main(vars(parser.parse_args()))
