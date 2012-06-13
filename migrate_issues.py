@@ -130,11 +130,11 @@ def main(args):
     password = args['github-password']
 
     client = gdata.projecthosting.client.ProjectHostingClient()
-    if args.has_key('google-username'):
-        application_name = args['google-application-name']
-        google_username = args['google-username']
-        google_password = args['google-password']
-        google_name = args['google-name']
+    if args.has_key('google_username'):
+        application_name = args['google_application_name']
+        google_username = args['google_username']
+        google_password = args['google_password']
+        google_name = args['google_name']
         client.ClientLogin(google_username, google_password, source=application_name)
 
 
@@ -163,7 +163,7 @@ def main(args):
                                         github_project,
                                         github_issue_id))
         print("Created", new_github_issue_url)
-        if args.has_key('google-username'):
+        if args['google_mark_as_migrated']:
             mark_googlecode_issue_migrated(client,
                                        google_name,
                                        source_project,
@@ -181,5 +181,6 @@ if __name__ == "__main__":
     parser.add_argument('--google-password', help='Google password')
     parser.add_argument('--google-name', help='Google display name')
     parser.add_argument('--google-application-name', help='Google application name')
+    parser.add_argument('--google-mark-as-migrated', type=bool, default=False, help="Mark as migrated on googlecode")
 
     main(vars(parser.parse_args()))
