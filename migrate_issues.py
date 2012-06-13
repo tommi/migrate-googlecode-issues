@@ -129,13 +129,14 @@ def main(args):
     username = args['github-username']
     password = args['github-password']
 
-    google_username = args['google-username']
-    google_password = args['google-password']
-    google_name = args['google-name']
-
-    application_name = args['google-application-name']
     client = gdata.projecthosting.client.ProjectHostingClient()
-    client.ClientLogin(google_username, google_password, source=application_name)
+    if args.has_key('google-username'):
+        application_name = args['google-application-name']
+        google_username = args['google-username']
+        google_password = args['google-password']
+        google_name = args['google-name']
+        client.ClientLogin(google_username, google_password, source=application_name)
+
 
     issues = all_open_issues(client, source_project)
 
@@ -162,7 +163,8 @@ def main(args):
                                         github_project,
                                         github_issue_id))
         print("Created", new_github_issue_url)
-        mark_googlecode_issue_migrated(client,
+        if args.has_key('google-username'):
+            mark_googlecode_issue_migrated(client,
                                        google_name,
                                        source_project,
                                        source_issue_id,
@@ -170,14 +172,14 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('google-source', type=str, nargs=1, help='Google code source project')
-    parser.add_argument('github-organization', type=str, nargs=1, help='Github organization')
-    parser.add_argument('github-project', type=str, nargs=1, help='Github project')
-    parser.add_argument('github-username', type=str, nargs=1, help='Github username')
-    parser.add_argument('github-password', type=str, nargs=1, help='Github password')
-    parser.add_argument('google-username', type=str, nargs=1, help='Google username')
-    parser.add_argument('google-password', type=str, nargs=1, help='Google password')
-    parser.add_argument('google-name', type=str, nargs=1, help='Google display name')
-    parser.add_argument('google-application-name', type=str, nargs=1, help='Google application name')
+    parser.add_argument('google-source', help='Google code source project')
+    parser.add_argument('github-organization', help='Github organization')
+    parser.add_argument('github-project', help='Github project')
+    parser.add_argument('github-username', help='Github username')
+    parser.add_argument('github-password', help='Github password')
+    parser.add_argument('--google-username', help='Google username')
+    parser.add_argument('--google-password', help='Google password')
+    parser.add_argument('--google-name', help='Google display name')
+    parser.add_argument('--google-application-name', help='Google application name')
 
     main(vars(parser.parse_args()))
