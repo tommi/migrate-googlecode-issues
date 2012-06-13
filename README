@@ -7,10 +7,3 @@ Written in Python 2, because the gdata APIs are in Python 2.
 Requires the gdata-python-client library, available here:
 http://code.google.com/p/gdata-python-client/
 
-To use: edit the variables at the top of main() so they have your desired
-source and target projects, and also your usernames and passwords for both
-sites.
-
-Cheers!
-
-Alex Rudnick (alex.rudnick@gmail.com)
