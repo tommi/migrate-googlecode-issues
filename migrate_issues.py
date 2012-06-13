@@ -8,8 +8,6 @@ To use: edit the variables at the top of main() so they have your desired
 source and target projects, and also your usernames and passwords for both
 sites.
 """
-__author__ = "Alex Rudnick (alex.rudnick@gmail.com)"
-
 from __future__ import print_function
 
 import os
